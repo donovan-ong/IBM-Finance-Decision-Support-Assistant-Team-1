@@ -1,0 +1,31 @@
+version: "3.9"
+
+# Spins up watsonx Orchestrate Developer Edition locally.
+# Requires `orchestrate env activate local` / the WO Developer Edition CLI setup;
+# see IBM docs for the up-to-date image list and required env vars.
+services:
+  orchestrate:
+    image: cp.icr.io/cp/wxo-lite/wxo-server:latest
+    env_file:
+      - .env
+    ports:
+      - "4321:4321"
+    volumes:
+      - orchestrate_data:/data
+
+  api:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: uvicorn finance_assistant.api.app:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    depends_on:
+      - orchestrate
+
+volumes:
+  orchestrate_data:
