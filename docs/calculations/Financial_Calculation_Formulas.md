@@ -8,15 +8,15 @@
 
 **Status:** Active reference — update here first, then reflect in code and test cases
 
-**Last Update:** 19 August 2026
+**Last Update:** 29 August 2026
 
 This file defines exactly how each financial metric is calculated in the assistant. The development team should use these definitions when building and validating calculations if a formula needs to change, it should be updated here first, then reflected in the code and test cases.
 
 ## Data Source Structure
 
-Data is organized as one file per year (e.g. covering 2025 and 2026), with each file holding both Actual and Budget figures. The exact column layout and naming is a development/implementation decision and is out of scope for this document.
+The dataset should contain records for each financial category and month. Each yearly file should contain the monthly records for that year. The monthly data may be used directly for monthly calculations or aggregated to support quarterly and yearly analysis. A quarter consists of three consecutive months, while a year consists of twelve consecutive months. The exact column structure and naming conventions are development and implementation decisions and are therefore out of scope for this document. 
 
-Every figure used in a calculation must be traceable to its source. When the assistant reports a result, it must also state the source file and the matching period/category it was pulled from. If a required value cannot be found in the ingested data, the assistant must state that it is missing it must not substitute, estimate, or assume a value
+Every figure used in a calculation must be traceable to its source. The AI Assistant must provide traceability by identifying the source file, relevant period, column, and row from which each figure used in the calculation was obtained. Where a calculation uses aggregated data, the AI Assistant must identify the underlying months, rows, and columns used to derive the quarterly or yearly value. If a required value cannot be found in the ingested data, the AI Assistant must clearly state that the value is missing. It must not substitute, estimate, or assume a value that is not present in the source data. 
 
 ## Calculation Definitions
 
@@ -24,9 +24,9 @@ Every figure used in a calculation must be traceable to its source. When the ass
 
 Dollar Variance = Actual Value − Budget Value
 
-**Inputs needed:** Actual Value, Budget Value (both numeric, currency), pulled from the same period and category
+**Inputs needed:** Actual Value and Budget Value (both numeric and expressed in the applicable currency), retrieved for the same financial category and selected period. The selected period may be a month, quarter, or year. For quarterly or yearly calculations, the values must be derived by aggregating the relevant monthly data for the selected category and period.
 
-**Output format:** Currency, 2 decimal places (e.g. $15,200.00)
+**Output format:** Currency, 2 decimal places (e.g. $15,200.00).
 
 **Note:**
 
@@ -34,15 +34,17 @@ Dollar Variance = Actual Value − Budget Value
 
 - A negative result is valid (it just means the actual came in under budget), so don't hide the sign.
 
-- State the source file, and the exact row and column each value was read from, so the result is fully traceable
+- State the source file, and the exact row and column each value was read from, so the result is fully traceable.
+
+- For quarterly or yearly calculations, the AI Assistant must identify the underlying monthly records used to derive the Actual and Budget values.
 
 2. **Percentage Variance**
 
 Percentage Variance = (Actual Value − Budget Value) / |Budget Value| × 100
 
-**Inputs needed:** Actual Value, Budget Value, from the same period and category as above
+**Inputs needed:** Actual Value and Budget Value, from the same financial category and selected period as above. The selected period may be a month, quarter, or year. For quarterly or yearly calculations, the values must be derived by aggregating the relevant monthly data for the selected category and period.
 
-**Output format:** Percentage, 1 decimal place (e.g. 12.5%)
+**Output format:** Percentage, 1 decimal place (e.g. 12.5%).
 
 **Note:**
 
@@ -50,31 +52,35 @@ Percentage Variance = (Actual Value − Budget Value) / |Budget Value| × 100
 
 - If Budget Value is negative, the assistant must add a short explanatory note clarifying that the result reflects a change relative to a negative starting value, so the percentage is not misread as movement from a positive base.
 
-- State the source file, and the exact row and column each value was read from, so the result is fully traceable
+- State the source file, and the exact row and column each value was read from, so the result is fully traceable.
+
+- For quarterly or yearly calculations, the AI Assistant must identify the underlying monthly records used to derive the Actual and Budget values.
 
 3. **Gross Margin**
 
 Gross Margin (%) = (Revenue − Cost of Goods Sold) / Revenue × 100
 
-**Inputs needed:** Revenue, Cost of Goods Sold (COGS), for the matching period
+**Inputs needed:** Revenue and Cost of Goods Sold (COGS), from the same selected period. The selected period may be a month, quarter, or year. For quarterly or yearly calculations, Revenue and COGS must be derived by aggregating the relevant monthly data before applying the formula.
 
-**Output format:** Percentage, 1 decimal place (e.g. 14.6%)
+**Output format:** Percentage, 1 decimal place (e.g. 14.6%).
 
 **Note:**
 
-- If Revenue is 0, return: "Gross margin cannot be calculated because revenue is zero."
+- If Revenue is 0, return: "Gross margin cannot be calculated because revenue is zero.".
 
-- If Revenue is negative (e.g. from major refunds or reversals), do not perform the calculation, a negative Revenue in the denominator would produce a misleading positive percentage instead of reflecting an actual loss. Flag this as an invalid input and explain why (e.g. "Gross Margin cannot be calculated: Revenue is negative (-$10,000). financial_data2026.csv, Row 12, Column C.")
+- If Revenue is negative (e.g. from major refunds or reversals), do not perform the calculation, a negative Revenue in the denominator would produce a misleading positive percentage instead of reflecting an actual loss. Flag this as an invalid input and explain why (e.g. "Gross Margin cannot be calculated: Revenue is negative (-$10,000). financial_data2026.csv, Row 12, Column C.").
 
 - Margin can be negative if COGS is higher than Revenue — that's a valid result, don't suppress it.
 
-- State the source file, and the exact row and column each value was read from, so the result is fully traceable
+- State the source file, and the exact row and column each value was read from, so the result is fully traceable.
+
+- For quarterly or yearly calculations, the AI Assistant must identify the months included in the calculation.
 
 4. **Period-over-Period (PoP) Growth**
 
 PoP Growth (%) = (Current Period Value − Previous Period Value) / |Previous Period Value| × 100
 
-**Inputs needed:** Current Period Value, Previous Period Value, for the same category. If the two periods fall in different yearly files (e.g. Q4 2025 to Q1 2026), both files must be read.
+**Inputs needed:** Current Period Value and Previous Period Value, from the same financial category and matching period type. The comparison may be month-to-month, quarter-to-quarter, or year-to-year. For quarterly calculations, each quarter must be derived by aggregating its three underlying monthly records. For yearly calculations, each year must be derived by aggregating its twelve underlying monthly records.
 
 **Output format:** Percentage, 1 decimal place
 
@@ -90,11 +96,13 @@ PoP Growth (%) = (Current Period Value − Previous Period Value) / |Previous Pe
 
 - State the source file, exact row, and column where each value was read from, including both files when the comparison spans two years, so the result is fully traceable
 
+- For quarterly or yearly calculations, the AI Assistant must identify the months included in each period used in the calculation.
+
 5. **Year-over-Year (YoY) Growth**
 
 YoY Growth (%) = (Current Year Value − Same Period Prior Year Value) / |Same Period Prior Year Value| × 100
 
-**Inputs needed:** Current Year Value, Same Period Value from the Prior Year, matching Period and Category across the two-yearly files.
+**Inputs needed:** Current Period Value and the corresponding same period in the prior year, from the same financial category and matching period type. The comparison may be month-to-month, quarter-to-quarter, or full-year-to-full-year. For quarterly calculations, each quarter must be derived by aggregating its three underlying monthly records. For yearly calculations, each year must be derived by aggregating its twelve underlying monthly records.
 
 **Output format:** Percentage, 1 decimal place
 
@@ -108,11 +116,13 @@ YoY Growth (%) = (Current Year Value − Same Period Prior Year Value) / |Same P
 
 - State the source file, exact row, and column where each value was read from, including the matching period from each year when the comparison spans two yearly files, so the result is fully traceable.
 
+- For quarterly or yearly calculations, the AI Assistant must identify the months included in each period used in the calculation.
+
 6. **Variance Contribution by Category**
 
 Category Contribution (%) = Category Dollar Variance / Total Dollar Variance × 100
 
-**Inputs needed:** Dollar Variance per category (from Formula 1), and the total Dollar Variance across all categories for the same period
+**Inputs needed:** Dollar Variance for each category (from Formula 1) and the Total Dollar Variance across all categories within the same category set and selected period. The selected period may be a month, quarter, or year. For quarterly or yearly calculations, the Actual and Budget values used to derive the Dollar Variance for each category must be aggregated from the relevant monthly data before calculating the contribution.
 
 **Output format:** Percentage, 1 decimal place. Contributions should total approximately 100%, allowing for small rounding differences.
 
@@ -123,6 +133,8 @@ Category Contribution (%) = Category Dollar Variance / Total Dollar Variance × 
 - If total Dollar Variance is 0, return: "Contribution by category cannot be calculated because total variance is zero."
 
 - State the source file, exact row, and column where each category's Dollar Variance was read from, so the result is fully traceable.
+
+- For quarterly or yearly calculations, the AI Assistant must identify the months included in the calculation for each category.
 
 ## Edge Case Handling Rules
 
@@ -140,11 +152,13 @@ Category Contribution (%) = Category Dollar Variance / Total Dollar Variance × 
 
 - If a required value is missing, null, or unavailable, the calculation must not be performed.
 
-- The assistant must clearly identify which value is missing.
+- The AI Assistant must clearly identify the missing value.
 
-- Where the expected source location is known, the assistant must provide the source file, row, and column.
+- Where the expected source location is known, the AI Assistant must identify the source file, row, and column associated with the missing value.
 
-- The assistant must not assume a missing value is 0.
+- The AI Assistant must not assume that a missing value is 0.
+
+- For quarterly or yearly calculations, the AI Assistant must identify the monthly data required to perform the calculation. If a required value for any month is missing, the AI Assistant must identify the missing value and, where known, specify its corresponding source file, row, and column.
 
 **Example:** Percentage variance cannot be calculated because Actual Value is missing from financial_data2026.csv, Row 8, Column C.
 
@@ -175,6 +189,8 @@ Category Contribution (%) = Category Dollar Variance / Total Dollar Variance × 
 2. If values are taken from different yearly files, the assistant must identify the source location for each value.
 
 3. The assistant must not present a calculated result if the source of the required input values cannot be verified.
+
+4. For quarterly or yearly calculations, the AI Assistant must identify the months included in the calculation and the corresponding source file, row, and column for the Actual and Budget values used to derive the result.
 
 ## General Formatting Rules
 
