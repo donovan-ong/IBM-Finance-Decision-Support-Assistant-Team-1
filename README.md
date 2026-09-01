@@ -13,6 +13,7 @@
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
+- [Synthetic Data Generation](#synthetic-data-generation)
 - [User Stories & Acceptance Criteria](#user-stories--acceptance-criteria)
 - [Scope](#scope)
 - [3-Sprint Roadmap](#3-sprint-roadmap)
@@ -75,6 +76,28 @@ If required data is missing, invalid, ambiguous, or zero where division by zero 
 ### Running Locally
 ## Usage
 ## Project Structure
+
+## Synthetic Data Generation
+
+Since only synthetic data is permitted (see [Epic 5](#epic-5-data-privacy--synthetic-data)), the project includes a script that generates a realistic, reproducible financial dataset for development and testing.
+
+**Script:** [`data/scripts/generate_synthetic_data.py`](data/scripts/generate_synthetic_data.py)
+
+**Run it:**
+```bash
+python3 data/scripts/generate_synthetic_data.py
+```
+
+**Produces** (written to `data/raw/`, which is gitignored — regenerate locally rather than pulling these from git):
+- `financial_data_2025.csv` and `financial_data_2026.csv` — 2 years of monthly Revenue, Cost of Goods Sold, and 5 Expense categories, one row per Year/Period/Category
+- `categories.csv` — seed data for the SQL `Categories` lookup table (category name, group, display order)
+
+**How the numbers are generated:** Revenue and each Expense category follow their own compounding monthly growth trend (their Budget value), with Actual value equal to that trend plus random noise (category-specific volatility — e.g. Rent is stable, Marketing is volatile). Cost of Goods Sold is derived as a fixed percentage of Revenue's budget so Gross Margin stays realistic. All of this is controlled by named constants at the top of the script (`RANDOM_SEED`, `REVENUE_PROFILE`, `EXPENSE_PROFILES`, `COGS_TO_REVENUE_RATIO`).
+
+**Seeded edge cases:** 18 specific, hand-picked cells are deliberately overwritten after the clean data is generated — covering missing values, division-by-zero, negative values, and non-numeric values — so the calculation logic in [Epic 2](#epic-2-financial-calculations) has known-bad inputs to validate against. Each one is documented with its exact file/row/column citation and the calculation rule it exercises.
+
+**Reproducibility:** the dataset is fully deterministic for a fixed `RANDOM_SEED` (default `42`) — running the script again on the same Python version reproduces the same CSVs exactly. See [`docs/calculations/Synthetic_Data_Formula_Verification.md`](docs/calculations/Synthetic_Data_Formula_Verification.md) for the exact seed/commit/command used for the reference dataset, worked examples of all six calculations run against real generated rows, and a full table of which edge cases are seeded where.
+
 ## User Stories & Acceptance Criteria
 
 
