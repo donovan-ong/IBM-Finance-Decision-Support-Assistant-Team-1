@@ -81,6 +81,40 @@ header = row 1:
 - Dollar Variance = 42,535.61 − 43,060.55 = **−$524.94**
 - Percentage Variance = −524.94 / \|43,060.55\| × 100 = **−1.2%**
 
+**Normal case — yearly aggregation, Revenue, FY2025** (`financial_data_2025.csv`,
+Rows 2, 9, 16, 23, 30, 37, 44, 51, 58, 65, 72, 79)
+
+This is the worked example the Financial Calculation Formulas doc requires for
+any quarterly/yearly figure: *"the values must be derived by aggregating the
+relevant monthly data for the selected category and period"* (Formula 1), and
+because the schema stores no separate yearly total row (per the CSV/SQL Data
+Structure Specification's "No stored 'Total' row" design decision), the
+yearly Actual and Budget values only exist as the sum of these twelve rows.
+
+| Month | Row | Actual_Value | Budget_Value |
+| --- | --- | --- | --- |
+| 2025-01 | 2 | 174,243.53 | 175,000.00 |
+| 2025-02 | 9 | 176,200.43 | 177,625.00 |
+| 2025-03 | 16 | 176,296.02 | 180,289.37 |
+| 2025-04 | 23 | 175,014.03 | 182,993.72 |
+| 2025-05 | 30 | 190,097.87 | 185,738.62 |
+| 2025-06 | 37 | 193,479.20 | 188,524.70 |
+| 2025-07 | 44 | 192,009.41 | 191,352.57 |
+| 2025-08 | 51 | 190,042.96 | 194,222.86 |
+| 2025-09 | 58 | 201,681.02 | 197,136.20 |
+| 2025-10 | 65 | 196,899.30 | 200,093.25 |
+| 2025-11 | 72 | 206,633.24 | 203,094.64 |
+| 2025-12 | 79 | 202,635.63 | 206,141.06 |
+| **FY2025 Total** | — | **2,275,232.64** | **2,282,211.99** |
+
+- Yearly Dollar Variance = 2,275,232.64 − 2,282,211.99 = **−$6,979.35**
+- Yearly Percentage Variance = −6,979.35 / \|2,282,211.99\| × 100 = **−0.3%**
+- Per Formula 1's aggregation-traceability rule, the assistant must cite all
+  twelve rows above (`financial_data_2025.csv`, Rows 2, 9, 16, 23, 30, 37, 44,
+  51, 58, 65, 72, 79, Columns E–F) as the source of the yearly figures — a
+  citation of "the FY2025 total" alone is not sufficient, since that total is
+  never itself a stored value.
+
 **Edge case — missing Actual (Rent Expense, 2025-01, Row 6, Column E blank).**
 Expected: *"Dollar Variance cannot be calculated because Actual Value is
 missing from financial_data_2025.csv, Row 6, Column E."* No substitution of
