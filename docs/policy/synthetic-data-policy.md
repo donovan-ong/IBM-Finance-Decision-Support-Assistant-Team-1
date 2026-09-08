@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Document ID** | POL-DATA-001 |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Status** | Proposed / Pending Approval |
 | **Owner** | Raghdah AL-Gahdari, Business Analyst |
 | **Approved by** | [pending] |
-| **Last updated** | 2026-08-31 |
+| **Last updated** | 2026-09-08 |
 | **Applies to** |AI Finance Decision Support — Team 1, built for IBM |
 
 ---
@@ -91,7 +91,7 @@ This distinction is important because it maintains a clear separation between **
 | `market-context.md` | Industry and seasonality assumptions used to inform scenario data generation and financial analysis | Business Analyst |
 | `data/scripts/generate_synthetic_data.py`| The technical generation method used to produce the synthetic dataset, including the fixed-seed reproducibility (P5) and rule-based statistical approach (P4) required by this policy| Technical team, reviewed by BA |
 
-This policy is the **authoritative source for the use, provenance, and confidentiality of the project’s data**. It establishes that the data used by the Assistant is synthetic and defines the requirements for its appropriate use and representation. It does not define the financial meaning of the data or the rules used to analyse it. Those responsibilities are covered by the relevant governing documents, including `business-rules.md`, `market-context.md`, and `data-generation-methodology.md`.
+This policy is the **authoritative source for the use, provenance, and confidentiality of the project’s data**. It establishes that the data used by the Assistant is synthetic and defines the requirements for its appropriate use and representation. It does not define the financial meaning of the data or the rules used to analyse it. Those responsibilities are covered by the relevant governing documents, including `business-rules.md` and `market-context.md`.
 
 The Assistant must keep these responsibilities separate when analysing data or citing project sources. This policy must be used only to support claims about the **source and synthetic nature of the data**, while financial conclusions and analysis must be supported by the applicable financial and business rules. The Assistant is a **decision-support tool**: it provides analysis and relevant information to support human decision-making, but it does not make or approve business decisions on behalf of users.
 
@@ -119,7 +119,7 @@ The Assistant remains a **decision-support system**. Its outputs are intended to
 
 | Version | Date | Change | Author |
 |---|---|---|---|
-| 1.0 | 2026-08-31 | Initial version; scope narrowed to data-provenance assurance per instructor guidance, separated from business/financial rules | Raghdah Al-Gahdari |
+| 1.1 | 2026-09-08 | Initial version; scope narrowed to data-provenance assurance per instructor guidance, separated from business/financial rules | Raghdah Al-Gahdari |
 
 ---
 
