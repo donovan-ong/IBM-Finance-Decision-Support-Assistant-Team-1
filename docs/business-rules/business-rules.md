@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Document ID** | POL-DATA-002 |
-| **Version** | 0.1 |
-| **Status** | Proposed / Pending Approval |
+| **Version** | 1.0 |
+| **Status** | Approved |
 | **Owner** | Raghdah Al-Gahdari, Business Analyst |
-| **Approved by** | [pending] |
-| **Last updated** | 2026-09-10 |
+| **Approved by** | Aaron (Supervisor) |
+| **Last updated** | 2026-10-08 |
 | **Applies to** | AI Finance Decision Support — Team 1, built for IBM |
 
 ---
@@ -42,7 +42,7 @@ This document applies to the seven financial categories defined in the project s
 
 The research (`synthetic-data-research.docx`, Section 2.3) establishes that materiality and variance behaviour differ by industry. This project therefore adopts one explicit, fixed scenario, so that the thresholds in Section 5 have a real business justification rather than being arbitrary:
 
-> **Assumed scenario: a mid-sized retail/services business**, with Cost of Goods Sold as its largest cost driver, moderate and relatively stable gross margins, and discretionary categories (Marketing, Other Expense) that are expected to fluctuate with campaign timing rather than signal a problem.
+> **Assumed scenario: a mid-sized clothing retailer, Melbourne**, with Cost of Goods Sold as its largest cost driver, moderate and relatively stable gross margins, and discretionary categories (Marketing, Other Expense) that are expected to fluctuate with campaign timing rather than signal a problem.
 
 This scenario was chosen because it fits the category set already defined in the schema (a Revenue line, a COGS line tied to Revenue, and five expense lines split between fixed and discretionary spend) without requiring any change to the dataset structure. All thresholds and rules below are justified against this scenario, not against any property of the synthetic-data generator.
 
@@ -81,16 +81,15 @@ Fixed and predictable categories are given tighter thresholds than variable or d
 | Category | Predictability | Percentage Variance Threshold | Justification |
 |---|---|---|---|
 | Rent Expense | Fixed (contractual lease) | 3% | Contractual costs should not move without a known cause; any deviation is worth surfacing |
-| Payroll Expense | Fixed/semi-fixed | 5% | Headcount-driven, changes gradually; a mid-size retail/services business would not expect large swings outside a hiring/restructuring event |
-| Revenue | Demand-driven, core metric | 8% | Directly affects overall financial performance (Research 2.3.1); consistent with the "total revenue" materiality benchmark of 0.5–1% for a single line item is too tight at consolidated level, so 5% is used as the operating-variance threshold, distinct from statement-level materiality |
-| Cost of Goods Sold | Variable, tied to Revenue and supplier pricing | 8% | Expected to move with sales volume and supplier costs; a retail/services business normally tolerates more movement here than in Revenue itself |
+| Payroll Expense | Fixed/semi-fixed | 5% | Headcount-driven, changes gradually; a mid-sized clothing retailer would not expect large swings outside a hiring/restructuring event |
+| Revenue | Demand-driven, core metric | 8% | Directly affects overall financial performance (Research 2.3.1). The 0.5–1% materiality benchmark for total revenue is too tight for a single line item at operating level, so 8% is used as the operating-variance threshold, distinct from statement-level materiality |
+| Cost of Goods Sold | Variable, tied to Revenue and supplier pricing | 8% | Expected to move with sales volume and supplier costs; set at the same level as Revenue because COGS moves directly with sales |
 | Utilities Expense | Semi-variable (seasonal/usage) | 20% | Usage- and season-driven; normal fluctuation is expected and does not by itself indicate an issue |
 | Marketing Expense | Discretionary | 30% | Campaign-timing driven; deviations commonly reflect planned business activity, not a problem (Research 2.3.1) |
 | Other Expense | Discretionary/miscellaneous | 38% | Least predictable category by nature; a wide band avoids flagging routine, low-materiality fluctuations |
 
 **Threshold Note:** 
-
- The thresholds presented above are proposed management defaults developed for the assumed mid-sized retail/services business scenario. Where applicable, thresholds were calibrated at approximately **2.5x the standard deviation of normal random variation (noise_std_pct)** built into the dataset generator for each category, consistent with the statistical Empirical Rule (Wikipedia contributors, 2026) and the logic used in Statistical Process Control, where control limits are set at 2.5-3x standard deviation to distinguish genuine signals from normal random fluctuation. This ensures that a flagged variance is unlikely to result from random noise alone (less than ~1% probability) and more likely reflects an actual business change. These thresholds are intended to support consistent variance assessment within this project and should not be interpreted as universal accounting or audit materiality thresholds. The proposed thresholds should be reviewed against the dataset generation assumptions and formally approved by the project team prior to implementation
+The thresholds presented above are management defaults developed for the assumed scenario (a mid-sized clothing retailer, Melbourne). Where applicable, thresholds were calibrated at approximately **2.5x the standard deviation of normal random variation (noise_std_pct)** built into the dataset generator for each category, consistent with the statistical Empirical Rule (Wikipedia contributors, 2026) and the logic used in Statistical Process Control, where control limits are set at 2.5-3x standard deviation to distinguish genuine signals from normal random fluctuation. This ensures that a flagged variance is unlikely to result from random noise alone (less than ~1% probability) and more likely reflects an actual business change. These thresholds are intended to support consistent variance assessment within this project and should not be interpreted as universal accounting or audit materiality thresholds. They were reviewed against the dataset generation assumptions and approved by the Supervisor.
 
 ### 5.2 Part 2 — Qualitative Test (Judgement-Based)
 
@@ -151,7 +150,7 @@ The Assistant must not send alerts, escalate cases, approve budgets, override fi
 
 ## 9. Governance
 
-- Any change to the assumed scenario (Section 3)requires BA sign-off and a version increment.
+- Any change to the assumed scenario (Section 3) requires BA sign-off and a version increment.
 - Any change to the threshold values (Section 5.1) must be reviewed by the BA and formally approved by the Supervisor before implementation.
 - This document moves from "Proposed" to "Approved" once the scenario and thresholds are formally confirmed.
 
@@ -160,6 +159,7 @@ The Assistant must not send alerts, escalate cases, approve budgets, override fi
 | Version | Date | Change | Author |
 |---|---|---|---|
 | 0.1 | 2026-09-10 | Initial draft, derived from `synthetic-data-research.docx` Section 2 | Raghdah Al-Gahdari |
+| 1.0 | 2026-10-08 | Status changed to Approved. Revenue justification corrected from 5% to 8% to match the threshold. Scenario updated to mid-sized clothing retailer, Melbourne, and aligned in Section 3, the Payroll and COGS justifications and the Threshold Note. Threshold Note updated to reflect approval. | Raghdah Al-Gahdari |
 
 ---
 
