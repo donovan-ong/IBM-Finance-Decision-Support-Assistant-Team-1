@@ -1,0 +1,158 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Supabase Financial Records API",
+    "version": "1.0.0",
+    "description": "API connection to query financial_data_2025, financial_data_2026, categories, and market_context tables"
+  },
+  "servers": [
+    {
+      "url": "https://lnzuijvknnksqqvccaxo.supabase.co/rest/v1"
+    }
+  ],
+  "security": [
+    {
+      "SupabaseApiKey": []
+    }
+  ],
+  "paths": {
+    "/financial_data_2026": {
+      "get": {
+        "summary": "Fetch 2026 financial records by Period or Category",
+        "operationId": "get2026Records",
+        "parameters": [
+          {
+            "name": "Period",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by period e.g. eq.2026-03 or in.(2026-01,2026-02,2026-03)"
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by category e.g. eq.Revenue or eq.Rent Expense"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": "object" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial_data_2025": {
+      "get": {
+        "summary": "Fetch 2025 financial records by Period or Category",
+        "operationId": "get2025Records",
+        "parameters": [
+          {
+            "name": "Period",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by period e.g. eq.2025-03 or in.(2025-01,2025-02,2025-03)"
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by category e.g. eq.Revenue or eq.Rent Expense"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": "object" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "summary": "Fetch category metadata and display order",
+        "operationId": "getCategories",
+        "parameters": [
+          {
+            "name": "category_name",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by category name e.g. eq.Payroll Expense"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": "object" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/market_context": {
+      "get": {
+        "summary": "Fetch external economic indicators for explanation steps (POL-DATA-003)",
+        "operationId": "getMarketContext",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by category e.g. eq.Cost of Goods Sold"
+          },
+          {
+            "name": "indicator",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by indicator e.g. eq.Cotton price index"
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by period e.g. eq.2026-06 or in.(2026-04,2026-05,2026-06)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": "object" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "SupabaseApiKey": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header",
+        "description": "Supabase Publishable Key"
+      }
+    }
+  }
+}
