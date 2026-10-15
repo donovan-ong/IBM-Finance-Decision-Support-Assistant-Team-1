@@ -1,0 +1,8 @@
+category_name,category_group,display_order
+Cost of Goods Sold,COGS,2
+Marketing Expense,Expense,4
+Other Expense,Expense,7
+Payroll Expense,Expense,3
+Rent Expense,Expense,5
+Revenue,Revenue,1
+Utilities Expense,Expense,6
