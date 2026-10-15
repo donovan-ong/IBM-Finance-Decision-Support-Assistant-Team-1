@@ -1,1 +1,0 @@
-"""Common finance ratio calculations."""
