@@ -88,9 +88,12 @@ Since only synthetic data is permitted (see [Epic 5](#epic-5-data-privacy--synth
 python3 data/scripts/generate_synthetic_data.py
 ```
 
-**Produces** (written to `data/raw/`, which is gitignored — regenerate locally rather than pulling these from git):
+**Produces (Raw):** (written to `data/raw/`, which is gitignored — regenerate locally rather than pulling these from git):
 - `financial_data_2025.csv` and `financial_data_2026.csv` — 2 years of monthly Revenue, Cost of Goods Sold, and 5 Expense categories, one row per Year/Period/Category
 - `categories.csv` — seed data for the SQL `Categories` lookup table (category name, group, display order)
+
+**Active Datasets (`data/processed/`):**
+- Hand-modified and finalized operational CSV files used directly by the agent are stored and tracked under `data/processed/` to ensure consistent execution across team environments.
 
 **How the numbers are generated:** Revenue and each Expense category follow their own compounding monthly growth trend (their Budget value), with Actual value equal to that trend plus random noise (category-specific volatility — e.g. Rent is stable, Marketing is volatile). Cost of Goods Sold is derived as a fixed percentage of Revenue's budget so Gross Margin stays realistic. All of this is controlled by named constants at the top of the script (`RANDOM_SEED`, `REVENUE_PROFILE`, `EXPENSE_PROFILES`, `COGS_TO_REVENUE_RATIO`).
 
