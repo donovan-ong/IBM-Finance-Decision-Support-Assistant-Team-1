@@ -7,7 +7,7 @@
 | **Status** | Approved |
 | **Owner** | Raghdah Al-Gahdari, Business Analyst |
 | **Approved by** | Aaron (Supervisor) |
-| **Last updated** | 2026-10-08 |
+| **Last updated** | 2026-10-16 |
 | **Applies to** | AI Finance Decision Support — Team 1, built for IBM |
 
 ---
