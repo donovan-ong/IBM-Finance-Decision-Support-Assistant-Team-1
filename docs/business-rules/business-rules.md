@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document ID** | POL-DATA-002 |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Status** | Approved |
 | **Owner** | Raghdah Al-Gahdari, Business Analyst |
 | **Approved by** | Aaron (Supervisor) |
@@ -101,6 +101,10 @@ A variance is also treated as material, regardless of size, if any of the follow
 
 The qualitative test cannot be reduced to a fixed rule — it requires human judgement. The Assistant's role here is limited to **flagging** the variance and the reason it may be qualitatively relevant; it does not decide materiality on the analyst's behalf.
 
+### 5.3 Data Verification Prompt
+
+When any calculated result is negative (for example a negative variance, growth rate or gross margin), the Assistant shows the result as usual, with its explanatory note and full source traceability, followed by this message: "This result is negative. Please check the source figures and the calculation manually to make sure the data is correct before taking any action." The Assistant does not conclude that the data is wrong. The decision remains with the financial analyst.
+
 ---
 
 ## 6. Rule-Based vs. Judgement-Based Behaviour
@@ -160,6 +164,7 @@ The Assistant must not send alerts, escalate cases, approve budgets, override fi
 |---|---|---|---|
 | 0.1 | 2026-09-10 | Initial draft, derived from `synthetic-data-research.docx` Section 2 | Raghdah Al-Gahdari |
 | 1.0 | 2026-10-08 | Status changed to Approved. Revenue justification corrected from 5% to 8% to match the threshold. Scenario updated to mid-sized clothing retailer, Melbourne, and aligned in Section 3, the Payroll and COGS justifications and the Threshold Note. Threshold Note updated to reflect approval. | Raghdah Al-Gahdari |
+| 1.1 | 2026-10-16 | Added Section 5.3 (Data Verification Prompt): any negative result is shown with a message asking the financial analyst to verify the data before taking action. | Raghdah Al-Gahdari |
 
 ---
 
