@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Document ID** | POL-DATA-001 |
-| **Version** | 1.1 |
-| **Status** | Proposed / Pending Approval |
-| **Owner** | Raghdah AL-Gahdari, Business Analyst |
-| **Approved by** | [pending] |
-| **Last updated** | 2026-09-08 |
+| **Version** | 1.2 |
+| **Status** | Approved |
+| **Owner** | Raghdah Al-Gahdari, Business Analyst |
+| **Approved by** | Raghdah AL-Gahdari, Business Analyst |
+| **Last updated** | 2026-10-20 |
 | **Applies to** |AI Finance Decision Support — Team 1, built for IBM |
 
 ---
@@ -87,7 +87,7 @@ This distinction is important because it maintains a clear separation between **
 | Document | Governs | Owner |
 |---|---|---|
 | `synthetic-data-policy.md` (this file) | Data provenance, synthetic-data requirements, and confidentiality assurance | Business Analyst |
-| `business-rules.md` | Materiality thresholds, variance logic, and the rules governing the Assistant's analysis and decision-support outputs, including behaviours that are deterministic or require AI judgemen | Business Analyst |
+| `business-rules.md` | Materiality thresholds, variance logic, and the rules governing the Assistant's analysis and decision-support outputs, including behaviours that are deterministic or require AI judgement | Business Analyst |
 | `market-context.md` | Industry and seasonality assumptions used to inform scenario data generation and financial analysis | Business Analyst |
 | `data/scripts/generate_synthetic_data.py`| The technical generation method used to produce the synthetic dataset, including the fixed-seed reproducibility (P5) and rule-based statistical approach (P4) required by this policy| Technical team, reviewed by BA |
 
@@ -120,6 +120,7 @@ The Assistant remains a **decision-support system**. Its outputs are intended to
 | Version | Date | Change | Author |
 |---|---|---|---|
 | 1.1 | 2026-09-08 | Initial version; scope narrowed to data-provenance assurance per instructor guidance, separated from business/financial rules | Raghdah Al-Gahdari |
+| 1.2 | 2026-10-20 | Status changed from Pending to Approved by BA. No change to policy content | Raghdah Al-Gahdari |
 
 ---
 
