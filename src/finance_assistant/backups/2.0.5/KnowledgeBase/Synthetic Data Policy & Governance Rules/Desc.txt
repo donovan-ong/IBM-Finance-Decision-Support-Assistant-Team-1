@@ -1,0 +1,1 @@
+Defines data provenance, privacy, and confidentiality guardrails governing the AI assistant. Mandates that all datasets and test prompts use 100% synthetic, artificially generated data to protect commercially sensitive and personally identifiable information. Sets rules for statistical data generation, fixed-seed reproducibility, and user transparency.

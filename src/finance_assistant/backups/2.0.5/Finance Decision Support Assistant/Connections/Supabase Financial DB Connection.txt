@@ -1,0 +1,1 @@
+Cloud database connection to query Supabase financial_data_2025 and financial_data_2026 tables directly.
