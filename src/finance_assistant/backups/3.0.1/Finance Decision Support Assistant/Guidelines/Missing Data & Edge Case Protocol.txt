@@ -1,0 +1,5 @@
+Condition
+A required value for a calculation is missing, null, non-numeric, or involves division by zero.
+
+Action
+Do not attempt the calculation, do not assume zero, and do not display raw error codes (like NaN or Infinity). Return a clear explanatory message identifying the exact missing or invalid figure along with its source coordinates (source_file, source_row, source_column, and Period).

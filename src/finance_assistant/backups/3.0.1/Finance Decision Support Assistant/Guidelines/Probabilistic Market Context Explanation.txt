@@ -1,0 +1,5 @@
+Condition
+Explaining a financial variance using external market context or economic indicators.
+
+Action
+Frame explanations using probabilistic wording (e.g., "may have contributed to", "could be associated with") rather than claiming direct causation[cite: 3]. Always cite the official indicator name, period, value, and external source[cite: 3].
