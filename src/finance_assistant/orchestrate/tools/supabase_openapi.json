@@ -2,12 +2,12 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Supabase Financial Records API",
-    "version": "1.0.0",
-    "description": "API connection to query financial_data_2025, financial_data_2026, categories, and market_context tables"
+    "version": "2.0.2",
+    "description": "API connection to query financial_data_2025, financial_data_2026, categories, market_context, and business_rules tables with physical spreadsheet traceability metadata."
   },
   "servers": [
     {
-      "url": "https://lnzuijvknnksqqvccaxo.supabase.co/rest/v1"
+      "url": "https://example.supabase.co/rest/v1"
     }
   ],
   "security": [
@@ -18,7 +18,7 @@
   "paths": {
     "/financial_data_2026": {
       "get": {
-        "summary": "Fetch 2026 financial records by Period or Category",
+        "summary": "Fetch 2026 financial records by Period or Category with spreadsheet source metadata",
         "operationId": "get2026Records",
         "parameters": [
           {
@@ -38,7 +38,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful retrieval",
+            "description": "Successful retrieval including source_file, source_row, and source_column coordinates",
             "content": {
               "application/json": {
                 "schema": { "type": "array", "items": { "type": "object" } }
@@ -50,7 +50,7 @@
     },
     "/financial_data_2025": {
       "get": {
-        "summary": "Fetch 2025 financial records by Period or Category",
+        "summary": "Fetch 2025 financial records by Period or Category with spreadsheet source metadata",
         "operationId": "get2025Records",
         "parameters": [
           {
@@ -70,7 +70,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful retrieval",
+            "description": "Successful retrieval including source_file, source_row, and source_column coordinates",
             "content": {
               "application/json": {
                 "schema": { "type": "array", "items": { "type": "object" } }
@@ -135,6 +135,38 @@
         "responses": {
           "200": {
             "description": "Successful retrieval",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": "object" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/business_rules": {
+      "get": {
+        "summary": "Fetch business rules and classification logic for financial variance analysis",
+        "operationId": "getBusinessRules",
+        "parameters": [
+          {
+            "name": "rule_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by rule type e.g. eq.Category_Assign or eq.Variance_Threshold"
+          },
+          {
+            "name": "category_group",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by category group e.g. eq.Revenue or eq.Expense"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of business rules including source metadata",
             "content": {
               "application/json": {
                 "schema": { "type": "array", "items": { "type": "object" } }
