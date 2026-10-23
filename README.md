@@ -1,297 +1,246 @@
-# AI-Powered Finance Decision Support Assistant- Team 1
+# AI-Powered Finance Decision Support Assistant – Team 1
 
+A conversational assistant for financial analysts, built on **IBM watsonx Orchestrate** with a **Supabase (PostgreSQL)** data layer. Analysts ask finance questions in plain English and get a calculated answer, the working, and a source for every figure. All data is synthetic.
 
+> **Project status:** Sprint 3 complete and handed over. Two agent versions are provided, **3.0.1** (latest, with downloadable PDF analysis) and **2.0.5** (stable, without the PDF tool). See [Agent versions](#agent-versions).
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Problem Statement](#problem-statement)
-- [Target Users](#target-users)
 - [Key Features](#key-features)
-- [Primary Use Case](#primary-use-case)
+- [Example Questions](#example-questions)
+- [How It Works](#how-it-works)
 - [Tech Stack](#tech-stack)
+- [Agent Versions](#agent-versions)
 - [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
+- [Data](#data)
 - [Synthetic Data Generation](#synthetic-data-generation)
-- [User Stories & Acceptance Criteria](#user-stories--acceptance-criteria)
+- [Repository Structure](#repository-structure)
+- [Requirements](#requirements)
+- [Project Timeline](#project-timeline)
 - [Scope](#scope)
-- [3-Sprint Roadmap](#3-sprint-roadmap)
-- [Success Criteria](#success-criteria)
-- [Assumptions & Constraints](#assumptions--constraints)
+- [Known Issues](#known-issues)
 - [Team](#team)
-
 
 ---
 
 ## Overview
 
-An AI-powered conversational assistant that streamlines financial data analysis and decision-making. It consolidates data from multiple sources, understands user questions in natural language, and delivers clear, easy-to-understand answers along with an explanation of how each result was derived. When a response involves a financial calculation, the assistant outlines the calculation method and the steps followed, provides supporting sources, and links the results to relevant policies and market context. This enables financial analysts to better understand the data and make more accurate, well-informed financial decisions — with full traceability back to the source of every figure and result.
+Financial analysts spend a large share of their time collecting and consolidating data before they can analyse it. This assistant lets them ask questions in natural language and returns:
 
-## Problem Statement
+- the result of the calculation,
+- the formula and the steps used,
+- the source of every figure (file, row and column),
+- relevant policy and market context, with citations, and
+- a short plain-language summary.
 
-Financial analysts currently spend a significant portion of their time manually gathering and consolidating financial data from multiple sources before it can be converted into usable, actionable insights. This manual, time-intensive process creates bottlenecks that delay downstream decision-making.
+When data is missing, invalid or would cause a division by zero, the assistant **refuses to calculate**, says which value is the problem, and asks the analyst to verify it. It never guesses.
 
-## Target Users
-
-| User | Type | Relationship to Tool |
-|---|---|---|
-| Financial Analysts | Direct user | Uses the tool directly to gather, consolidate, and analyse financial data |
-| CFOs | Indirect user | Consumes generated insights and reports to inform decisions, without using the tool directly |
+**Target users:** Financial Analysts (direct users) and CFOs (consume the outputs).
 
 ## Key Features
 
-- **Core financial calculations** — Dollar Variance, Percentage Variance, Gross Margin, Period-over-Period Growth, Year-over-Year (YoY) Growth, and Variance Contribution by Category.
-- **Traceability** — every key figure shows its source (e.g. `financial_report2.csv`).
-- **Policy & market linking** — financial results are connected to relevant policy or market context with citations.
-- **Analysis summaries** — short, clear summaries generated to support human review.
-- **Conversational, natural-language interface** — Analysts can ask the assistant financial questions using natural language..
-- **Synthetic data by design** — all test data is fictional but realistic; no real or confidential data is used.
+- **Six financial calculations:** Dollar Variance, Percentage Variance, Gross Margin, Period-over-Period Growth, Year-over-Year Growth and Variance Contribution by Category.
+- **Traceability:** every figure in a table carries a Source column (`source_file`, `source_row`, `source_column`).
+- **Safe handling of bad data:** missing values, zero denominators, negative values and non-numeric values are surfaced, not hidden.
+- **Policy and market context:** material variances are explained with cited, probabilistic market context. The assistant says so when nothing relevant exists.
+- **Scope guard:** questions outside the six calculations or outside 2025–2026 get a clear "unavailable" message with examples of what to ask.
+- **Downloadable analysis (3.0.1 only):** the analysis can be downloaded as a PDF.
+- **Synthetic data only:** no real or confidential data is used.
 
-## Primary Use Case
+## Example Questions
 
-**Use Case Name:** Financial Performance Analysis and Decision Support
+- "What is the dollar variance for revenue in March 2026?"
+- "How did our gross margin change from Q1 2026 to Q2 2026?"
+- "What is the year-over-year growth in Marketing expenses for 2026?"
+- "Which expense category contributed most to the operating expense variance in Q2 2026?"
 
-**Primary Actor:** Financial Analyst
+The data contains deliberately seeded edge cases. For example, the gross margin question above should be refused because February 2026 revenue is zero.
 
-**Goal:** Ask questions using natural language about financial performance and receive accurate, traceable analysis to support financial analysts' decision-making.
+## How It Works
 
-**Basic Flow:**
-1. Financial Analyst asks a finance-related question(e.g. "What is the variance between actual and budgeted revenue for Q2?")
-2. Assistant identifies the required financial data and calculation.
-3. Assistant retrieves the required data from the available sources.
-4. Assistant validates the data.
-5. Assistant performs the appropriate financial calculation.
-6. Assistant provides the result, calculation steps, and source traceability and links the results to relevant policies and market context. .
-7. Assistant provides a short analysis summary where applicable.
+```
+Analyst  →  watsonx Orchestrate agent  →  5 OpenAPI tools  →  Supabase PostgreSQL
+              (instructions, guidelines,
+               knowledge base)
+```
 
-**Alternative / Exception Flow:**
-If required data is missing, invalid, ambiguous, or zero where division by zero would occur, the assistant does not perform the calculation. Instead, it explains the issue and identifies the missing or invalid value or source.
+1. The analyst asks a question in the Orchestrate chat.
+2. The agent checks it is in scope, then calls the data tools for the exact monthly rows it needs.
+3. It applies the formula, refuses if the inputs are missing or invalid, and builds the answer with a Source column.
+4. If the variance is material, it adds market context and business-rule thresholds.
+5. In 3.0.1, the analyst can ask for the analysis as a downloadable PDF.
 
+The five tools are `get2025Records`, `get2026Records`, `getCategories`, `getMarketContext` and `getBusinessRules`. Quarterly and yearly figures are always derived from exactly three or twelve monthly rows.
 
 ## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Agent and chat interface | IBM watsonx Orchestrate (agent builder, knowledge base, OpenAPI tools) |
+| Data store | Supabase (PostgreSQL), accessed through the OpenAPI tools |
+| Synthetic data | Python 3 (`data/scripts/generate_synthetic_data.py`) |
+| PDF download (3.0.1) | IBM PDF generator tool in Orchestrate |
+| Design | Figma (personas, wireframes, conversation workflows) |
+| Superseded (Sprint 1) | IBM Planning Analytics, with MDX backed up in `docs/pa-backup` |
+
+## Agent Versions
+
+The agent is backed up in [`src/finance_assistant/backups/`](src/finance_assistant/backups/). Both versions use the same tables, the same OpenAPI tool file, the same knowledge base and the same guidelines. They differ only in the **agent Instructions** and the **IBM PDF generator tool**.
+
+| Version | Folder | PDF download | Status |
+|---|---|---|---|
+| **3.0.1** (latest) | [`backups/3.0.1`](src/finance_assistant/backups/3.0.1) | Yes | All validation, edge-case and privacy testing was done on this version. Has the two PDF-tool issues in [Known Issues](#known-issues). |
+| **2.0.5** (stable) | [`backups/2.0.5`](src/finance_assistant/backups/2.0.5) | No | Earlier stable build without the PDF tool. Not covered by the same testing. |
+
+Each version folder contains the agent `Description`, `Instructions`, `Guidelines`, `KnowledgeBase`, `Tables`, `Tools` and `Connections` exports.
+
 ## Getting Started
+
+The assistant runs inside watsonx Orchestrate, so there is nothing to host. To reproduce it, you rebuild the agent in your own account from the backup files. The project was built on free trial accounts, so a trial is enough, but trials expire.
+
 ### Prerequisites
-### Installation
-### Running Locally
-## Usage
-## Project Structure
 
-## Synthetic Data Generation
+- Git
+- Python 3 (only to run the synthetic data generator)
+- An IBM watsonx Orchestrate account where you can create agents
+- A Supabase account (a free project is enough)
 
-Since only synthetic data is permitted (see [Epic 5](#epic-5-data-privacy--synthetic-data)), the project includes a script that generates a realistic, reproducible financial dataset for development and testing.
+### 1. Clone the repository
 
-**Script:** [`data/scripts/generate_synthetic_data.py`](data/scripts/generate_synthetic_data.py)
+```bash
+git clone https://github.com/donovan-ong/IBM-Finance-Decision-Support-Assistant-Team-1.git
+cd IBM-Finance-Decision-Support-Assistant-Team-1
+```
 
-**Run it:**
+### 2. Try the synthetic data generator (optional)
+
 ```bash
 python3 data/scripts/generate_synthetic_data.py
 ```
 
-**Produces (Raw):** (written to `data/raw/`, which is gitignored — regenerate locally rather than pulling these from git):
-- `financial_data_2025.csv` and `financial_data_2026.csv` — 2 years of monthly Revenue, Cost of Goods Sold, and 5 Expense categories, one row per Year/Period/Category
-- `categories.csv` — seed data for the SQL `Categories` lookup table (category name, group, display order)
+This is only to see how the data was produced. You do not need to run it, because the finished tables are already in [`data/processed/`](data/processed/) and in each backup folder.
 
-**Active Datasets (`data/processed/`):**
-- Hand-modified and finalized operational CSV files used directly by the agent are stored and tracked under `data/processed/` to ensure consistent execution across team environments.
+### 3. Create the database
 
-**How the numbers are generated:** Revenue and each Expense category follow their own compounding monthly growth trend (their Budget value), with Actual value equal to that trend plus random noise (category-specific volatility — e.g. Rent is stable, Marketing is volatile). Cost of Goods Sold is derived as a fixed percentage of Revenue's budget so Gross Margin stays realistic. All of this is controlled by named constants at the top of the script (`RANDOM_SEED`, `REVENUE_PROFILE`, `EXPENSE_PROFILES`, `COGS_TO_REVENUE_RATIO`).
+Create a Supabase project, create the five tables (`financial_data_2025`, `financial_data_2026`, `categories`, `market_context`, `business_rules`) and import the CSVs from `src/finance_assistant/backups/<version>/Tables`.
 
-**Seeded edge cases:** 18 specific, hand-picked cells are deliberately overwritten after the clean data is generated — covering missing values, division-by-zero, negative values, and non-numeric values — so the calculation logic in [Epic 2](#epic-2-financial-calculations) has known-bad inputs to validate against. Each one is documented with its exact file/row/column citation and the calculation rule it exercises.
+### 4. Recreate the agent
 
-**Reproducibility:** the dataset is fully deterministic for a fixed `RANDOM_SEED` (default `42`) — running the script again on the same Python version reproduces the same CSVs exactly. See [`docs/calculations/Synthetic_Data_Formula_Verification.md`](docs/calculations/Synthetic_Data_Formula_Verification.md) for the exact seed/commit/command used for the reference dataset, worked examples of all six calculations run against real generated rows, and a full table of which edge cases are seeded where.
+Pick a version folder, then in Orchestrate create an agent named *Finance Decision Support Assistant* and fill it from that folder:
 
-## User Stories & Acceptance Criteria
+1. Paste `Description.txt` and `Instructions.txt`.
+2. Paste the four guidelines from `Guidelines/`.
+3. Upload the files in `KnowledgeBase/` to the knowledge base, keeping the same grouping.
+4. Import `Tools/supabase_openapi3.json` as an OpenAPI tool. **Edit its server URL to point at your own Supabase project first**, then set API-key authentication with your own key.
+5. Follow `Connections/Supabase Financial DB Connection.txt` and the screenshots to set up the connection.
+6. For 3.0.1 only, enable the IBM PDF generator tool.
+7. Test in Draft Preview, then deploy.
 
+### Secrets
 
+There is no `.env` file. The only secrets are your Supabase URL and API key, entered in Orchestrate. **Never commit them.**
 
-### Epic 1: Data Ingestion & Traceability
+### Checking it works
 
-**US-1.1** — As a financial analyst, I want the assistant to ingest CSV/SQL financial data, so that I don't have to manually consolidate it from multiple sources.
-- **AC1:** The system  successfully ingests at least one CSV file and one SQL data source without requiring manual pre-processing by the user.
-- **AC2:** Ingested data is validated for structural integrity correct/expected columns present, no corrupted or unreadable rows before it is used in any downstream calculation.
-- **AC3:** If ingestion fails, the system returns a clear, human-readable error identifying the  affected file/source and the reason for failure (not a silent failure or generic error)
+- Each Supabase table returns rows, and the `financial_data_*` tables have `source_file`, `source_row` and `source_column` filled in.
+- Ask: "How did our gross margin change from Q1 2026 to Q2 2026?" The agent should refuse because February 2026 revenue is zero.
+- Ask a variance question for a valid month. The answer should include a Source column and state that the data is synthetic.
+- Ask about a period outside 2025–2026. The agent should say it is unavailable.
+- (3.0.1 only) Ask for the analysis as a download and open the PDF.
 
-**US-1.2** — As a financial analyst, I want every key figure in a response to show its data source, so that I can trust and verify the result.
-- **AC1:** Every material figure in an assistant response is tagged with its source file (e.g financial_report2.csv).
-- **AC2:** The source reference includes reporting period and, where applicable, row/field identifiers.
-- **AC3:** If required source data is missing or unavailable, the assistant clearly informs the user that the analysis cannot be completed and identifies the missing source or data.
-- **AC4:** The assistant must not generate, assume, or fabricate missing financial data or present an unsupported result as fact.
+## Data
 
-### Implementation Notes:
-- Define a standard source citation format for every figure, including details such as {file, sheet/table, row_id, period}, and apply it consistently across Epics 1, 2, 3, and 4.
-- AC4 should be enforced at the prompt/response layer (e.g., grounding checks, refusal to answer without matching source data) flag this as a core guardrail to test explicitly, including adversarial test cases ("just estimate it for me")
+The assistant reads five Supabase tables. The finished CSVs for each are tracked in [`data/processed/`](data/processed/).
 
-### Epic 2: Financial Calculations
+| Table | Contents |
+|---|---|
+| `financial_data_2025`, `financial_data_2026` | Monthly Actual and Budget values per category, with `source_file`, `source_row` and `source_column` for traceability |
+| `categories` | Revenue, Cost of Goods Sold and five expense categories, with their group |
+| `market_context` | Public economic indicators (ABS, RBA, World Bank, ESC Victoria) for 2025-01 to 2026-09, with source and notes |
+| `business_rules` | One row per rule: category thresholds and verification guidance |
 
-**US-2.1** — As a financial analyst, I want the assistant to calculate Dollar Variance, Percentage Variance, Gross Margin, Period-over-Period Growth, YoY Growth, and Variance Contribution by Category, so that I get accurate results without manual computation.
-- **AC1:** The system correctly calculates each supported financial metric using its predefined formula and required input values.
-- **AC2:** The assistant displays the calculated result together with the input values used and the source of each input.
-- **AC3:** The assistant displays the calculation formula and the steps used to derive the result.
-- **AC4:** The system validates that all required input values are available and valid before performing the calculation.
-- **AC5:** If any required input is missing or invalid, the system does not perform the calculation or assume a value, and displays a clear error message identifying the missing or invalid input.
-- **AC6:** Calculation results and their supporting inputs are traceable to their original data sources, including the relevant reporting period and, where applicable, the row or field identifier.
-- **AC7:** Edge cases that would cause a mathematically undefined or misleading result (e.g., division by zero when calculating Percentage Variance or Gross Margin) are detected and return a clear explanatory message instead of an error, NaN, or Infinity.
+Missing values are stored as `NULL` and are never defaulted to 0.
 
-### Implementation Notes:
-- Document the exact formula for each of the six financial metrics in a shared reference file (e.g., calculations/formulas.md) so the development team uses consistent definitions for implementation and testing.
-- Define standard numeric formatting and rounding rules, including decimal precision, currency formatting, and percentage display.
-- For AC7, document all known mathematically undefined or invalid-result scenarios for each formula, along with the expected explanatory message for each case.
-- Define what constitutes an "invalid input" for AC5, including examples such as non-numeric values, invalid negative values where not permitted, and unsupported or out-of-range reporting periods.
+## Synthetic Data Generation
 
+Only synthetic data is permitted, so the project includes a script that generates a realistic, reproducible dataset.
 
-**US-2.2** — As a CFO, I want a short, clear analysis summary accompanying each calculation, so that I can quickly understand the result without reading raw data.
-- **AC1:** The system generates a concise plain-language summary for each completed financial calculation.
-- **AC2:** The generated summary is based on the calculated result and validated input values.
-- **AC3:** The summary identifies the key calculated metric and its corresponding result, such as variance, growth rate, margin, or contribution.
-- **AC4:** The system does not generate unsupported claims, assumptions, or conclusions that cannot be derived from the available input data and calculated results.
-- **AC5:** If the required calculation cannot be completed due to missing or invalid inputs, the system does not generate an analytical summary and instead returns the relevant error message
+**Script:** [`data/scripts/generate_synthetic_data.py`](data/scripts/generate_synthetic_data.py)
 
-### Implementation Notes:
-- Define a standard format and maximum length for summaries (e.g., 2–3 sentences) and prevent speculative statements such as “this suggests future growth will…”.
-- AC4 should be treated as a grounding constraint. Consider adding a validation step to ensure the summary only references values and conclusions supported by the calculation output before it is shown to the user.
+```bash
+python3 data/scripts/generate_synthetic_data.py
+```
 
+- **Raw output** is written to `data/raw/`, which is gitignored. Regenerate it locally instead of pulling it from git.
+- **Finished datasets** (hand-adjusted and used by the agent) are tracked in `data/processed/`. A fresh run will not match them exactly.
 
-### Epic 3: Policy & Market Context
+**How the numbers are made:** Revenue and each expense category follow a compounding monthly growth trend (their Budget value), and the Actual value is that trend plus random noise with category-specific volatility (Rent is stable, Marketing is volatile). Cost of Goods Sold is a fixed percentage of Revenue's budget. Everything is controlled by named constants at the top of the script (`RANDOM_SEED`, `REVENUE_PROFILE`, `EXPENSE_PROFILES`, `COGS_TO_REVENUE_RATIO`).
 
-**US-3.1** — As a financial analyst, I want financial results linked to relevant policy or market context, so that I can interpret numbers within the right framework.
-- **AC1:** The system identifies and retrieves relevant company policies and market context based on the financial query and calculated result.
-- **AC2:**Each company policy or market reference used in the response includes a valid source citation or link.
-- **AC3:**The referenced company policy or market context must be directly relevant to the financial result and query.
-- **AC4:**The assistant clearly distinguishes between the calculated financial result, company policy, and market context.
-- **AC5:**If no relevant policy or market context is available, the assistant explicitly states that no relevant reference was found and does not fabricate or infer a reference.
+**Seeded edge cases:** 18 cells are overwritten on purpose, covering missing values, division by zero, negative values and non-numeric values, so the calculation rules have known-bad inputs to be tested against.
 
+**Reproducibility:** the output is deterministic for a fixed `RANDOM_SEED` (default `42`). See [`docs/calculations/Synthetic_Data_Formula_Verification.md`](docs/calculations/Synthetic_Data_Formula_Verification.md) for the reference command, worked examples of all six calculations and a table of where each edge case is seeded.
 
-### Implementation Notes:
-- Resolve the retrieval source before estimation: Determine whether the assistant will use a document store with RAG/embedding search, a static curated reference set, or an external API. This decision will significantly affect the project scope and should be confirmed first.
-- Define a measurable relevance method for AC3, such as a similarity-score threshold or required keyword/category match, so that “directly relevant” can be tested objectively.
-- Confirm which policy and market documents are within the project scope and whether they are synthetic and approved under Epic 5.
+## Repository Structure
 
-### Epic 4: Conversational Interface
+```
+.
+├── data/
+│   ├── processed/            Final tables used by the agent (CSV, tracked)
+│   └── scripts/              Synthetic data generator
+├── design/
+│   ├── conversation_workflows/   Conversation flows for the assistant
+│   └── wireframes/planning_analytics/   Sprint 1 dashboard wireframes
+├── docs/
+│   ├── ai_logs/              Record of AI assistance used on the project
+│   ├── business-rules/       Business rules and thresholds
+│   ├── calculations/         Formulas and synthetic data verification
+│   ├── five-question/        Question set used to test the assistant
+│   ├── market-context/       Market context data and policy
+│   ├── pa-backup/            Planning Analytics backup (MDX and rules), Sprint 1
+│   ├── policy/               Synthetic data and governance policies
+│   └── requirements/         Requirements, user stories and data specification
+├── src/finance_assistant/
+│   ├── backups/              Agent exports: 3.0.1 (latest) and 2.0.5 (stable)
+│   ├── calculations/         Early Python prototype of the variance calculations
+│   └── orchestrate/tools/    OpenAPI specification for the Supabase tools
+├── tests/unit/               Unit tests for the Python prototype
+├── .gitignore
+└── README.md
+```
 
-**US-4.1** — As a financial analyst, I want to ask finance questions in natural language, so that I don't need to learn a query syntax.
-- **AC1:** The assistant correctly answers at least one finance-related question end-to-end by the end of Sprint 2.
-- **AC2:** The assistant correctly answers at least five finance-related questions using synthetic data by project completion.
-- **AC3:** The assistant identifies questions outside the defined use cases and returns a clear response explaining the supported use cases instead of attempting to answer them.
+The Python code in `src/finance_assistant/calculations` and `tests/unit` was an early prototype. The live assistant does not use it. Calculations are performed by the agent from its instructions and the formulas in `docs/calculations`.
 
-### Implementation Notes:
-- Move sprint-specific targets and question counts (e.g., “1 question by Sprint 2” or “5 questions by project completion”) to the release plan or Definition of Done. Acceptance Criteria should focus on system behaviour and functionality, not project timelines.
-- Define the out-of-scope detection mechanism for AC3, such as an intent classifier, predefined intent-to-use-case mapping, confidence threshold, or keyword/topic matching. Prepare a test dataset containing both in-scope and out-of-scope questions to validate the detection logic.
-- Maintain a centralised list of supported use cases/intents as the single source of truth. The same list should be used by the intent detection logic and the user-facing response, ensuring that the system consistently identifies and communicates its supported capabilities.
+## Requirements
 
-**US-4.2** — As a financial analyst, I want to download an analysis artifact from the web interface, so that I can share results outside the tool.
-- **AC1:** The web interface provides a download option for at least one analysis artifact for each completed analysis.
-- **AC2:** The downloaded artifact contains the relevant analysis results and maintains the source citations and traceability information provided in the assistant response.
-- **AC3:**The downloaded artifact can be successfully generated and opened outside the web application.
+Full requirements, user stories and acceptance criteria are in [`docs/requirements`](docs/requirements).
 
-### Implementation Notes:
-- Confirm the supported downloadable artifact format(s), such as PDF, XLSX, or CSV, and determine whether the user can select the preferred format.
-- For AC3, define a clear compatibility test matrix specifying the supported applications or environments where the artifact must open successfully (e.g., Adobe Reader for PDF, Microsoft Excel or Google Sheets for XLSX/CSV).
+## Project Timeline
 
-### Epic 5: Data Privacy & Synthetic Data
+| Sprint | Focus | What was delivered |
+|---|---|---|
+| **1 – Design & Bootstrap** | Environment and design | Synthetic data and policy, Planning Analytics cube and MDX calculations, personas, wireframes and conversation workflows |
+| **2 – Raw MVP** | Core functionality | Orchestrate agent with the CSV knowledge base, first end-to-end answers |
+| **3 – Refine MVP** | Hardening | Moved data to Supabase with OpenAPI tools for exact, traceable retrieval, guidelines for edge cases and privacy, testing, risk register, and the downloadable PDF analysis |
 
-**US-5.1** — As a project team member, I want the assistant to use only synthetic data, so that no real company or personal data is exposed.
-- **AC1:** The system accepts and processes only datasets identified as synthetic and approved for project use.
-- **AC2:** Synthetic data remains realistic, with plausible revenue and expense values, as defined by the project's synthetic data policy.
-- **AC3:**The system blocks or flags any dataset identified as containing non-synthetic, personal, or confidential data.
-- **AC4:** The assistant does not expose non-synthetic, personal, or confidential data through responses, calculations, reports, or downloadable artifacts.
-- **AC5:** All blocking, flagging, or quarantine actions are logged (timestamp, dataset identifier, triggering rule, action taken) and retrievable for compliance review.
-
-### Implementation Notes:
-- Dependency note: this epic's validation logically must run before Epic 1 ingestion completes- sequence accordingly in the backlog/board.
-- Define how the system will identify approved synthetic datasets, such as through dataset metadata, an approved dataset list, or a manual approval process.
-- Define the actual synthetic data policy document referenced in AC2 (thresholds, ranges, formats) — confirm it exists; if not, this is a dependency to raise now.
-- Define how the system will identify non-synthetic, personal, or confidential data in AC3 and specify which data types need to be checked, such as names, email addresses, tax IDs, and real company names.
-- AC4 should be broken into per-surface test cases during QA planning (chat output, calculation output, report generation, file export) since each is implemented differently.
-- Confirm "block" vs. "flag" behavior is it configurable, or fixed per data type/severity?
-
-### Epic 6: Reliability & Evaluation
-
-**US-6.1** — As a project team member, I want the assistant to be evaluated against defined accuracy and reliability criteria, so that its performance and limitations can be assessed before wider use.
-
-- **AC1:** The system produces an evaluation report covering four measured dimensions: numerical accuracy, source/citation quality, response usefulness, and identified limitations - each dimension scored/recorded separately.
-- **AC2:** The evaluation runs against the full defined question set (see Implementation Notes), with a pass/fail or scored result recorded for every question in the set — no question is skipped or left unrecorded.
-- **AC3:** For each question with a numerical answer, the result is compared against a predefined expected value within a defined tolerance, and the comparison outcome (pass/fail, delta) is recorded. 
-- **AC4:** For each response, source/citation quality is checked against the traceability rules defined in Epic 1 (US-1.2) and Epic 3 (US-3.1) — confirming a citation exists, is relevant, and is resolvable to real source data.
-- **AC5:**  All failed test cases, identified limitations, and unsupported/out-of-scope use cases encountered during evaluation are documented in the report with enough detail to reproduce the failure (question asked, actual vs. expected output).
-
-
-### Implementation Notes:
-- Define and version the evaluation question set as a separate project artifact (e.g., eval/question_set_v1.md). The set should be based on the supported use cases from Epic 4 and include relevant edge cases such as missing data, invalid inputs, and out-of-scope questions
-- Define the numerical accuracy tolerance for AC3, such as an exact match for currency values or an allowed tolerance for percentage calculations. Confirm the required accuracy threshold with the project stakeholders.
-- Define a measurable method for evaluating response usefulness. This could use a reviewer scoring rubric (e.g., 1–5) or a fixed checklist covering criteria such as answering the question, providing sources, and avoiding unsupported claims. Select one method and document the evaluation criteria.
-- Define when the evaluation should be performed: once before release or repeated after significant prompt, model, or system changes as part of regression testing. This decision will determine whether the evaluation process should be automated.
-- AC4 should use the existing source and traceability requirements defined in Epic 1 and Epic 3 rather than creating separate rules. Any changes to those requirements should be reflected in the evaluation criteria.
-- Define the overall pass/fail threshold for the Epic, such as requiring at least 95% of the defined question set to pass before the system is considered ready for wider use.
-
-**US-6.2** — As a financial analyst, I want the assistant to surface missing, ambiguous, or conflicting information rather than guessing, so that I don't act on incorrect data
-- **AC1:** When required data is missing, the assistant explicitly states this rather than returning a fabricated or assumed figure (consistent with the no-fabrication rule defined in US-1.2 AC4 and US-2.1 AC5).
-- **AC2:** When a user's question is ambiguous (e.g., could reasonably refer to more than one time period, metric, or entity), the assistant asks a clarifying question rather than guessing which interpretation was intended.
-- **AC3:**When source data conflicts (e.g., two sources report different values for the same figure/period), the assistant flags the conflict and displays both values with their respective sources, rather than silently picking one.
-- **AC4:**Missing-data, ambiguity, and conflict flags are visually/structurally distinguishable from a normal successful response, consistent with how errors are surfaced elsewhere in the assistant (e.g., US-1.1 AC3).
-
-
-### Implementation Notes:
-
-- Define what qualifies as "ambiguous" for AC2 — e.g., a fixed list of ambiguity triggers (missing period reference, metric name matches multiple definitions, entity name matches multiple records) rather than leaving it to model judgment alone. This needs a test set of ambiguous vs. unambiguous sample questions, similar to Epic 4's in-scope/out-of-scope set.
-- Define conflict detection logic for AC3 — this depends on Epic 1's ingestion allowing multiple sources for the same figure to coexist rather than being deduplicated/overwritten on ingest. Confirm this is supported upstream.
-- AC1 is a restatement of an existing system-wide rule for this story's context — reuse the same test cases from US-1.2/US-2.1 rather than duplicating test logic.
----
+The knowledge-base approach in Sprint 2 reported valid months as missing, which is why Sprint 3 moved to Supabase.
 
 ## Scope
 
-### In Scope (this term)
-- Support for 5+ core financial calculations (Dollar Variance, Percentage Variance, Gross Margin, Period-over-Period Growth, YoY Growth, Variance Contribution by Category)
-- Source traceability for every key figure
-- Linking results to relevant policy/market context
-- Short, clear analysis summaries
-- Reduced manual data collection time
-- Synthetic (self-generated) test data under a defined synthetic data policy
+**In scope:** six core calculations, source traceability for every figure, policy and market context, short analysis summaries, and synthetic data under a defined policy.
 
-### Out of Scope (this term)
-- Processing real or confidential data
-- Autonomous or multi-agent systems
-- Integration with internal IBM tools beyond the provided brief
-- Mobile application
-- Browser support beyond Chrome and Safari
-- Completing financial transactions
-- Finance questions outside defined use cases
+**Out of scope:** real or confidential data, autonomous or multi-agent systems, integration with IBM internal tools beyond the brief, a mobile app, browsers other than Chrome and Safari, financial transactions, and finance questions outside the defined use cases.
 
-## 3-Sprint Roadmap
+**Assumptions and constraints:** English only; tested in Chrome and Safari; only synthetic or publicly licensed data; web-based; built on the IBM product stack; delivered within 9 weeks.
 
-| Sprint | Focus | Deliverables |
-|---|---|---|
-| **Sprint 1 — Design & Bootstrap** | Environment setup | CSV/SQL ingestion and Watsonx Orchestrate environment live; synthetic data policy defined; calculation functions and conversational workflow exist as paper prototype only |
-| **Sprint 2 — Raw MVP** | Core functionality | First transparent calculation functions working end-to-end, validated via expected-results tests; conversational workflow answers at least one finance question with linked policy/market documents |
-| **Sprint 3 — Refine MVP** | Hardening | Traceability, evaluation measures, and risk documentation added; testing covers numerical accuracy, citations, privacy, and failure handling across the full question set |
+## Known Issues
 
-## Success Criteria
+- **Intermittent data access (3.0.1 only):** since the PDF tool was added, the agent sometimes says it cannot view the record for a period that exists. Refreshing the agent a few times usually fixes it. The cause is not known.
+- **PDF formatting (3.0.1 only):** some PDFs show square boxes where a hyphen (`-`) should be. This is intermittent and the cause is not known.
+- **Run-to-run variation:** the model does the retrieval and calculation, so answers can vary between runs.
+- **Accounts are temporary:** the agent was built on free trial accounts and a team Supabase project. Rebuild it in your own accounts using [Getting Started](#getting-started).
 
-- Assistant accurately answers at least 5 finance questions using synthetic data
-- Core calculation functions match an independently prepared expected-results dataset
-- Each material answer identifies data source, reporting period, assumptions, and calculation method
-- All policy/market statements include a usable citation or source link
-- Missing, ambiguous, or conflicting information is surfaced, not invented
-- Working web interface supports natural-language questions with at least one downloadable artifact
-- Evaluation report measures numerical accuracy, source quality, response usefulness, and known limitations
-
-## Assumptions & Constraints
-
-**Assumptions**
-- English-only product and language support
-- Testing limited to Chrome and Safari
-- Synthetic and publicly licensed data will be sufficient for testing
-- Client-provided financial calculations are assumed correct and approved
-- watsonx Developer Edition and ADK remain available throughout the project
-- Client provides feedback at agreed milestones
-- AI may assist with refining work (with acknowledgement); final product reviewed by the PM
-
-**Constraints**
-- Only synthetic or publicly licensed data may be used
-- Application must be web-based
-- Must use IBM Cloud
-- Must use the IBM product stack
-- Project must be completed within 9 weeks
+If the PDF issues matter, use version **2.0.5**, which has no PDF tool.
 
 ## Team
 
