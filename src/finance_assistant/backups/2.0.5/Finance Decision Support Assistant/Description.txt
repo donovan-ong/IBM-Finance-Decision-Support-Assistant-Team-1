@@ -1,0 +1,1 @@
+An AI-powered financial decision support agent that performs evidence-based variance analysis, applies transparent business rules, and connects financial metrics with internal policies and external market context for human decision-makers.

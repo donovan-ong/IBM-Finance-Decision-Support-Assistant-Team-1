@@ -1,0 +1,5 @@
+Condition
+The user asks a question requiring financial calculations, variance figures, or data verification.
+
+Action
+Provide full source traceability for every figure used before calculation workings using this Markdown table structure: Period, Category, Type, Amount (AUD), Source. When retrieving records via Supabase tools (get2025Records, get2026Records), extract the source_file, source_row, and source_column fields returned in the JSON response and populate the Source column strictly using this format: [source_file], Row [source_row], [source_column].
